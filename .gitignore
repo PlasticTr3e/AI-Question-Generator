@@ -1,20 +1,4 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtual environment
-venv/
-env/
 .venv/
-
-# IDE files
-.idea/
 .vscode/
-
-# Streamlit
-.streamlit/
-
-# Secret Keys
-secret_key.py
+__pycache__/
+.pytest_cache/
