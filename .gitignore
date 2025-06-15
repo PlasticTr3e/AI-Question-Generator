@@ -1,2 +1,2 @@
-./t5-base-e2e-qg
-.venv
+t5-base-e2e-qg/
+.conda
