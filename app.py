@@ -79,8 +79,8 @@ st.markdown("""
 # === Load Model ===
 @st.cache_resource
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("t5-base-e2e-qg")
-    model = AutoModelForSeq2SeqLM.from_pretrained("t5-base-e2e-qg")
+    tokenizer = AutoTokenizer.from_pretrained("t5-base-multi-qg-squadv2")
+    model = AutoModelForSeq2SeqLM.from_pretrained("t5-base-multi-qg-squadv2")
     return tokenizer, model
 
 # === PDF Extractor ===
@@ -105,29 +105,30 @@ def extract_text_from_pdf(pdf_file):
 # === Question Generator ===
 def generate_questions(text):
     tokenizer, model = load_model()
-    inputs = tokenizer(text, return_tensors="pt", max_length=2048, truncation=True)
+    prefix = "generate questions: "
+    inputs = tokenizer(prefix + text, return_tensors="pt", max_length=2048, truncation=True)
     outputs = model.generate(
         **inputs,
         max_new_tokens=1024,
-        temperature=1.2,
-        top_p=0.85,
+        temperature=0.7,
+        top_p=0.80,
         do_sample=True,
-        num_return_sequences=3,
+        num_return_sequences=1,
         pad_token_id=tokenizer.eos_token_id,
     )
-    questions_raw = "\n".join([tokenizer.decode(output, skip_special_tokens=True) for output in outputs])
-    return [q.strip() for q in questions_raw.replace("<sep>", "\n").split("\n") if q.strip()]
+    questions_raw = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return [q.strip() for q in questions_raw.replace("sep>", "\n").split("\n") if q.strip()]
 
 # === Main App ===
 def main():
     if 'started' not in st.session_state:
         st.session_state.started = False
 
-    st.markdown('<div class="title">QuizBot: AI Question Generator 🧠</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">QuizBot: AI Question Generator</div>', unsafe_allow_html=True)
     st.markdown('<div class="description">Buat pertanyaan otomatis dari teks bahasa Inggris 🎓</div>', unsafe_allow_html=True)
 
     if not st.session_state.started:
-        if st.button("🚀 Mulai Sekarang", use_container_width=True):
+        if st.button("Mulai Sekarang", use_container_width=True):
             st.session_state.started = True
 
     if st.session_state.started:
@@ -135,7 +136,7 @@ def main():
 
         with col1:
             with st.container(border=True):
-                st.subheader("📥 Input Teks")
+                st.subheader("Input Teks")
                 input_method = st.selectbox("Metode input:", ["Upload File", "Manual Input"])
                 text_content = ""
 
@@ -158,12 +159,12 @@ def main():
 
         with col2:
             with st.container(border=True):
-                st.subheader("🧾 Hasil Pertanyaan")
+                st.subheader("Hasil Pertanyaan")
                 if generate and text_content:
                     with st.spinner("🔄 Sedang memproses..."):
                         try:
                             questions = generate_questions(text_content)
-                            st.success("✅ Pertanyaan berhasil dibuat!")
+                            st.success("Pertanyaan berhasil dibuat!")
                             st.markdown("<ul class='question-list'>", unsafe_allow_html=True)
                             for q in questions:
                                 st.markdown(f"<li>{q}</li>", unsafe_allow_html=True)
@@ -171,7 +172,7 @@ def main():
                         except Exception as e:
                             st.error(f"Terjadi kesalahan: {e}")
                 elif generate and not text_content:
-                    st.warning("🚫 Masukkan teks terlebih dahulu!")
+                    st.warning("Masukkan teks terlebih dahulu!")
 
     else:
         st.markdown('<div class="footer-text">Klik tombol "Mulai Sekarang" untuk menggunakan QuizBot ✨</div>', unsafe_allow_html=True)
